@@ -9,6 +9,7 @@ namespace Tatelier.DxLib.Optimize
         {
             '\t',
             ' ',
+            '\r',
             '\n',
         };
 
