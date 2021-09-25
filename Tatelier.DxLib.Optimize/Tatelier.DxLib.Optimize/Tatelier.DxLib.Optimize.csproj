@@ -32,6 +32,8 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TextAnalyzer.cs" />
+    <Compile Include="CSSourceStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tatelier.DxLib.Base.Top.txt">
@@ -42,6 +44,9 @@
     </Content>
     <Content Include="DxLib.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Tatelier.DxLib.Struct.Manual.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
