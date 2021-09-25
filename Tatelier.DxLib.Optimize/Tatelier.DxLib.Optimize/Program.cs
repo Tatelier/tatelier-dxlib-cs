@@ -300,7 +300,7 @@ namespace Tatelier.DxLib.Optimize
                         type.Clear();
                         name.Clear();
                     }
-                    contentList.RemoveAt(contentList.Count - 1);
+
                     var structName = ta.GetStr();
 
                     a.WriteLine("[StructLayout(LayoutKind.Explicit)]");
