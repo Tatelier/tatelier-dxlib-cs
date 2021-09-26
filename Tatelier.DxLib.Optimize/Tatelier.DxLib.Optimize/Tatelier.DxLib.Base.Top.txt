@@ -1,5 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 namespace DxLibDLL
 {
-	public static class DX
+	public static partial class DX
 	{
