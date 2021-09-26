@@ -1,11 +1,14 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace Tatelier.DxLib.Optimize
 {
+    [DebuggerDisplay("{inputText}")]
     class TextAnalyzer
     {
-        static char[] splitCharList = new char[]
+        public char[] splitCharList = new char[]
         {
             '\t',
             ' ',
@@ -13,8 +16,31 @@ namespace Tatelier.DxLib.Optimize
             '\n',
         };
 
+        public char[] splitCharList2 = new char[]
+        {
+            '*',
+            '-',
+            '+',
+            '/',
+            '%',
+            '(',
+            ')',
+            ',',
+        };
+
         public StringBuilder inputText;
         public int index;
+
+        public IEnumerable<string> EnumerateStr()
+		{
+            string str = GetStr();
+            while(str != null)
+			{
+                yield return str;
+                str = GetStr();
+
+            }
+		}
 
         public string GetStr()
         {
@@ -22,6 +48,7 @@ namespace Tatelier.DxLib.Optimize
 
             for (int i = index; i < inputText.Length; i++)
             {
+                // 文字列
                 if (inputText[i] == '\"')
                 {
                     outputText.Append(inputText[i]);
@@ -36,6 +63,7 @@ namespace Tatelier.DxLib.Optimize
                         }
                     }
                 }
+                // コメント
                 else if ('/' == inputText[i]
                     && (i + 1) < inputText.Length
                     && '/' == inputText[i + 1])
@@ -57,8 +85,7 @@ namespace Tatelier.DxLib.Optimize
                         return $"{outputText}";
                     }
                 }
-                else if (',' == inputText[i]
-                    || '*' == inputText[i])
+                else if (splitCharList2.Any(v => v == inputText[i]))
                 {
                     if (outputText.Length > 0)
                     {
@@ -79,7 +106,7 @@ namespace Tatelier.DxLib.Optimize
 
             index = inputText.Length;
 
-            return $"{outputText}";
+            return null;
         }
     }
 }

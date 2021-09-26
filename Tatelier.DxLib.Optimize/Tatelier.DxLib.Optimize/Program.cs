@@ -12,10 +12,14 @@ namespace Tatelier.DxLib.Optimize
     {
         const string outputFolderPath = "Output";
         const string dxlibHeaderFilePath = "DxLib.h";
+        const string dllNameVariableValue = "DxLibDLLFileName";
 
+        static readonly string outputExtensionsFilePath = $"{outputFolderPath}/Tatelier.DxLib.Extensions.cs";
         static readonly string outputConstFilePath = $"{outputFolderPath}/Tatelier.DxLib.Const.cs";
         static readonly string outputStructManualFilePath = $"{outputFolderPath}/Tatelier.DxLib.Struct.Manual.cs";
         static readonly string outputStructAutoFilePath = $"{outputFolderPath}/Tatelier.DxLib.Struct.Auto.cs";
+        static readonly string outputFunctionManualFilePath = $"{outputFolderPath}/Tatelier.DxLib.Function.Manual.cs";
+        static readonly string outputFunctionAutoFilePath = $"{outputFolderPath}/Tatelier.DxLib.Function.Auto.cs";
 
         // 定数関連
         static readonly IReadOnlyList<string> excludeConstList = new string[]
@@ -25,12 +29,81 @@ namespace Tatelier.DxLib.Optimize
             "DEFAULT_FOV", "DEFAULT_TAN_FOV_HALF", "DEFAULT_NEAR", "DEFAULT_FAR",
             "DEFAULT_FONT_SIZE", "DEFAULT_FONT_THINCK", "DEFAULT_FONT_TYPE", "DEFAULT_FONT_EDGESIZE",
         };
+
+        static readonly IReadOnlyList<string> excludeFunctionList = new string[]
+        {
+            "GraphFilter", "GraphFilterBlt", "GraphFilterRectBlt",
+            "GraphBlend", "GraphBlendBlt", "GraphBlendRectBlt",
+            "sprintfDx", "sscanfDx",
+            "SetBlendGraphParam",
+            "SetBeepFrequency", "PlayBeep", "StopBeep",
+            "ErrorLogFmtAdd", "AppLogAdd", "printfDx", "FileRead_scanf",
+            "DrawFormatString", "DrawFormatVString", "DrawFormatStringToHandle", "DrawFormatVStringToHandle",
+            "DrawExtendFormatString", "DrawExtendFormatVString", "DrawExtendFormatStringToHandle", "DrawExtendFormatVStringToHandle",
+            "DrawRotaFormatString", "DrawRotaFormatStringF", "DrawRotaFormatStringToHandle", "DrawRotaFormatStringFToHandle",
+            "DrawFormatStringF", "DrawFormatVStringF", "DrawFormatStringFToHandle", "DrawFormatVStringFToHandle",
+            "DrawExtendFormatStringF", "DrawExtendFormatVStringF", "DrawExtendFormatStringFToHandle", "DrawExtendFormatVStringFToHandle",
+            "DrawFormatStringMask", "DrawFormatStringMaskToHandle",
+            "GetDrawFormatStringWidth", "GetDrawFormatStringWidthToHandle",
+            "GetDrawExtendFormatStringWidth", "GetDrawExtendFormatStringWidthToHandle",
+            "DrawFormatStringToZBuffer", "DrawFormatVStringToZBuffer", "DrawFormatStringToHandleToZBuffer",
+            "DrawFormatVStringToHandleToZBuffer", "DrawExtendFormatStringToZBuffer", "DrawExtendFormatVStringToZBuffer",
+            "DrawExtendFormatStringToHandleToZBuffer", "DrawExtendFormatVStringToHandleToZBuffer",
+            "DrawRotaStringToZBuffer", "DrawRotaStringToHandleToZBuffer",
+            "DrawRotaFormatStringToZBuffer", "DrawRotaFormatStringToHandleToZBuffer",
+            "SetKeyInputStringColor", "Paint",
+        };
+
         static bool CheckExcludeConst(StringBuilder sb)
         {
             string text = $"{sb}";
 
             return excludeConstList.Any(v => v == text);
         }
+
+        static string GetConvertHexToDec(StringBuilder sb)
+		{
+            var textAnalyzer = new TextAnalyzer();
+            textAnalyzer.splitCharList = new char[]
+            {
+            };
+            textAnalyzer.splitCharList2 = new char[]
+            {
+                '\t',
+                ' ',
+                '\r',
+                '\n',
+                '*',
+                '-',
+                '+',
+                '/',
+                '%',
+                '(',
+                ')',
+                ',',
+            };
+            textAnalyzer.inputText = sb;
+
+            var outputSB = new StringBuilder();
+
+
+            var iterator = textAnalyzer.EnumerateStr();
+
+            foreach(var item in iterator)
+			{
+                if (item.StartsWith("0x"))
+                {
+                    outputSB.Append($"unchecked((int){item})");
+                }
+                else
+                {
+                    outputSB.Append(item);
+                }
+			}
+
+            return $"{outputSB}";
+		}
+
         static void WriteConst(StreamReader source, CSSourceStream a)
         {
             a.WriteLineConstInt("TRUE", 1);
@@ -105,7 +178,10 @@ namespace Tatelier.DxLib.Optimize
                     value.Append(line[i]);
                 }
 
-                a.WriteLineConstInt($"{name}", $"{value}");
+                var valueStr = $"{value}";
+                valueStr = GetConvertHexToDec(value);
+
+                a.WriteLineConstInt($"{name}", $"{valueStr}");
             }
         }
 
@@ -144,25 +220,25 @@ namespace Tatelier.DxLib.Optimize
 
             ("unsigned char", "byte", 1),
             ("unsigned int", "uint", 4),
+            ("TCHAR", "byte", 1),
             ("BYTE", "byte", 1),
             ("WORD", "ushort", 2),
             ("DWORD", "uint", 4),
-            ("TCHAR", "byte", 1),
 
             ("void*", "uint", 4),
             ("const TCHAR*", "uint", 4),
             ("const TCHAR**", "uint", 4),
             ("const char*", "uint", 4),
             ("const IMEINPUTCLAUSEDATA*", "uint", 4),
-
-            ("VECTOR", "VECTOR", 12),
-            ("VECTOR_D", "VECTOR_D", 24),
-            ("COLOR_U8", "COLOR_U8", 4),
-            ("COLOR_F", "COLOR_F", 16),
-            ("FLOAT4", "FLOAT4", 16),
             ("MV1_COLL_RESULT_POLY*", "uint", 4),
 
-            ("COLORDATA", "COLORDATA", 1064),
+            ("VECTOR", null, 12),
+            ("VECTOR_D", null, 24),
+            ("COLOR_U8", null, 4),
+            ("COLOR_F", null, 16),
+            ("FLOAT4", null, 16),
+
+            ("COLORDATA", null, 1064),
 
         };
         static bool TryGetTypeForCS(string inputType, out string type, out int size)
@@ -171,7 +247,14 @@ namespace Tatelier.DxLib.Optimize
 
             if (item != default)
             {
-                type = item.Item2;
+                if (item.Item2 != null)
+                {
+                    type = item.Item2;
+                }
+				else
+				{
+                    type = inputType;
+				}
                 size = item.Item3;
 
                 return true;
@@ -356,7 +439,15 @@ namespace Tatelier.DxLib.Optimize
                             break;
                         }
                     }
-                    WriteStructOnce(sb, a);
+                    try
+                    {
+                        WriteStructOnce(sb, a);
+                    }
+                    catch(Exception e)
+					{
+                        Console.WriteLine($"{e}");
+					}
+
                     sb.Clear();
                     continue;
                 }
@@ -366,6 +457,7 @@ namespace Tatelier.DxLib.Optimize
 
         public static void Main(string[] args)
         {
+            // 既存の出力先フォルダを削除し、再作成する。
             if (Directory.Exists(outputFolderPath))
             {
                 Directory.Delete(outputFolderPath, true);
@@ -373,6 +465,21 @@ namespace Tatelier.DxLib.Optimize
             Directory.CreateDirectory(outputFolderPath);
 
             var sr = new StreamReader(dxlibHeaderFilePath);
+
+
+            // 関数
+            using (var a = new CSSourceStream(outputExtensionsFilePath))
+            {
+                a.WriteLine("#if _WIN32");
+                a.WriteLine($"const string {dllNameVariableValue} = \"DxLib.dll\";");
+                a.WriteLine("#elif _WIN64");
+                a.WriteLine($"const string {dllNameVariableValue} = \"DxLib_x64.dll\";");
+                a.WriteLine("#else");
+                a.WriteLine($"const string {dllNameVariableValue} = \"DxLib.dll\";");
+                a.WriteLine("#endif");
+                a.WriteLineConstInt("DX_TRUE", 1);
+                a.WriteLineConstInt("DX_FALSE", 0);
+            }
 
             // 定数
             using (var a = new CSSourceStream(outputConstFilePath))
@@ -416,7 +523,29 @@ namespace Tatelier.DxLib.Optimize
                         WriteStruct(sr, a);
                     }
                 }
+            }
 
+            // 関数
+            using (var a = new CSSourceStream(outputFunctionManualFilePath))
+			{
+                const string manualFilePath = "Tatelier.DxLib.Function.Manual.txt";
+
+                // 手動入力部を書き込み
+                foreach(var l in File.ReadAllLines(manualFilePath))
+                {
+                    a.WriteLine(l);
+                }
+			}
+
+            using (var a = new CSSourceStream(outputFunctionAutoFilePath))
+            {
+                string entryPoint = "dx_DxLib_Init";
+                string unsafeStr = false ? "unsafe " : "";
+                string typeStr = "int";
+                string argsStr = "";
+
+                a.WriteLine($"[DllImport({dllNameVariableValue}, EntryPoint=\"{entryPoint}\")]");
+                a.WriteLine($"extern {unsafeStr}static {typeStr} {entryPoint}({argsStr});");
             }
         }
     }
