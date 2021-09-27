@@ -26,13 +26,11 @@ namespace Tatelier.DxLib.Optimize
             ("int", "int", 4),
             ("float", "float", 4),
             ("double", "double", 8),
-
-
+            ("unsigned char", "byte", 1),
+            ("unsigned int", "uint", 4),
 
             ("size_t", "ulong", 8),
 
-            ("unsigned char", "byte", 1),
-            ("unsigned int", "uint", 4),
             ("TCHAR", "byte", 1),
             ("BYTE", "byte", 1),
             ("LONGLONG", "long", 8),
