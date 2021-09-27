@@ -31,20 +31,37 @@ namespace Tatelier.DxLib.Optimize
         public StringBuilder inputText;
         public int index;
 
-        public IEnumerable<string> EnumerateStr()
+        public string[] ToArrayStr()
+        {
+            int temp = index;
+
+            var result = EnumerateStr2().ToArray();
+
+            index = temp;
+
+            return result;
+        }
+
+        IEnumerable<string> EnumerateStr2()
 		{
             string str = GetStr();
             while(str != null)
 			{
                 yield return str;
                 str = GetStr();
-
             }
 		}
+
+        public IEnumerable<string> EnumerateStr()
+        {
+            return ToArrayStr();
+        }
 
         public string GetStr()
         {
             var outputText = new StringBuilder(64);
+
+            bool isNowComment = false;
 
             for (int i = index; i < inputText.Length; i++)
             {
@@ -74,6 +91,27 @@ namespace Tatelier.DxLib.Optimize
                         {
                             index = i + 1;
                             return $"{outputText}";
+                        }
+                    }
+                }
+                else if('/' == inputText[i]
+                    && (i + 1) < inputText.Length
+                    && '*' == inputText[i + 1])
+                {
+                    if (outputText.Length > 0)
+                    {
+                        return $"{outputText}";
+                    }
+                    else
+                    {
+                        for (; i < inputText.Length; i++)
+                        {
+                            if (inputText[i] == '*'
+                                && (i + 1) < inputText.Length
+                                && '/' == inputText[i + 1])
+                            {
+                                index = i + 2;
+                            }
                         }
                     }
                 }
