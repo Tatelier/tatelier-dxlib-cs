@@ -17,13 +17,25 @@ namespace Tatelier.DxLib.Optimize
 
     class Function
     {
-        public string ReturnType;
+        /// <summary>
+        /// 返り値型
+        /// </summary>
+        public string ReturnType { get; set; }
 
-        public string Name;
+        /// <summary>
+        /// 関数名
+        /// </summary>
+        public string Name { get; set; }
 
-        public bool IsUnsafe = false;
+        /// <summary>
+        /// Unsafeかどうか
+        /// </summary>
+        public bool IsUnsafe { get; set; } = false;
 
-        public List<Parameter> ParameterList = new List<Parameter>();
+        /// <summary>
+        /// 仮引数リスト
+        /// </summary>
+        public List<Parameter> ParameterList { get; } = new List<Parameter>();
 
         public string GetParameterString(bool ignoreType = false, bool ignoreDefaultValue = false)
         {
@@ -41,11 +53,21 @@ namespace Tatelier.DxLib.Optimize
             return result;
         }
 
+        /// <summary>
+        /// C#関数に対応した文字列を取得する
+        /// </summary>
+        /// <param name="header"></param>
+        /// <param name="functionNameHeader">関数名の前に付ける文字列</param>
+        /// <param name="ignoreDefaultValue">仮引数のデフォルト値を無視する</param>
+        /// <returns></returns>
         public string GetString(string header, string functionNameHeader = "", bool ignoreDefaultValue = false)
         {
             return $"{header}{ReturnType} {functionNameHeader}{Name}({GetParameterString(ignoreDefaultValue: ignoreDefaultValue)})";
         }
 
+        /// <summary>
+        /// クリアする
+        /// </summary>
         public void Clear()
         {
             ReturnType = null;
