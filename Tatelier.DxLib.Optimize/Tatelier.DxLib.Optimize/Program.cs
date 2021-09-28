@@ -12,6 +12,7 @@ namespace Tatelier.DxLib.Optimize
     {
         const string outputFolderPath = "Output";
         const string dxlibHeaderFilePath = "DxLib.h";
+        const string dxlibFuncWinHeaderFilePath = "DxFunctionWin.h";
         const string dllNameVariableValue = "DxLibDLLFileName";
 
         static readonly string outputExtensionsFilePath = $"{outputFolderPath}/Tatelier.DxLib.Extensions.cs";
@@ -62,15 +63,18 @@ namespace Tatelier.DxLib.Optimize
             ("CUBEDATA*", "out CUBEDATA", 0),
             ("COLORDATA*", "out COLORDATA", 0),
             ("IMAGEFORMATDESC*", "out IMAGEFORMATDESC", 0),
+            ("SOUND3D_REVERB_PARAM*", "out SOUND3D_REVERB_PARAM", 0),
+            ("BYTE*", "out byte", 0),
 
             ("const void*", "System.IntPtr", 8),
-            ("const TCHAR*", "string", -1),
+            ("const TCHAR*", "string", 4),
             ("const TCHAR**", "uint", 4),
             ("const char*", "uint", 4),
             ("const MATRIX_D*", "out MATRIX_D", 0),
             ("const MATRIX*", "out MATRIX", 0),
             ("const IMEINPUTCLAUSEDATA*", "uint", 4),
             ("const COLORDATA*", "uint", 4),
+            ("const IMAGEFORMATDESC*", "out IMAGEFORMATDESC", 0),
             ("MV1_COLL_RESULT_POLY*", "uint", 4),
 
             ("const INT4*", "[In, Out] INT4[]", 4),
@@ -78,7 +82,6 @@ namespace Tatelier.DxLib.Optimize
             ("const MATRIX*", "out MATRIX", 4),
             ("const MATRIX_D*", "out MATRIX_D", 8),
             ("const FLOAT4*", "[In, Out] FLOAT4[]", 4),
-            ("float*", "out float", 8),
             ("const float*", "[In, Out] float[]", 8),
             ("const double*", "out double", 8),
             ("const BOOL*", "[In, Out] int[]", 8),
@@ -112,7 +115,12 @@ namespace Tatelier.DxLib.Optimize
             ("const VERTEX3DSHADER*","[In, Out] VERTEX3DSHADER[]", 8),
             ("const SOUND3D_REVERB_PARAM*", "out SOUND3D_REVERB_PARAM", 0),
 
+            ("HWND", "System.IntPtr", 8),
+            ("HRGN", "System.IntPtr", 8), // 不明
+            ("HICON", "System.IntPtr", 8),
+
             ("VECTOR", null, 12),
+            ("RECT", null, 16),
             ("VECTOR_D", null, 24),
             ("COLOR_U8", null, 4),
             ("COLOR_F", null, 16),
@@ -123,6 +131,7 @@ namespace Tatelier.DxLib.Optimize
             ("MATRIX_D", null, 32),
             ("INT4", null, 16),
             ("MV1_COLL_RESULT_POLY_DIM", null, 0),
+            ("MATERIALPARAM", null, 0),
 
             ("DATEDATA*", "out DATEDATA", 8),
 
@@ -565,29 +574,51 @@ namespace Tatelier.DxLib.Optimize
             var f = new Function();
 
             var csv = new CSV("TypeConvert.csv");
-
+            bool isNowComment = false;
             while (!source.EndOfStream)
             {
                 bool ignore = false;
                 var line = source.ReadLine();
+
+                if(line.Contains("GetFontName"))
+				{
+
+				}
                 if (line.Contains("DX_FUNCTION_END"))
                 {
                     break;
                 }
-
+                if (isNowComment)
+                {
+                    int endCommendIndex = line.IndexOf("*/");
+                    if (endCommendIndex != -1)
+                    {
+                        line = line.Substring(endCommendIndex + 2);
+                        isNowComment = false;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
                 if(line.Length == 0)
                 {
                     continue;
                 }
 
                 // 無視
-                if (line.StartsWith("#if defined( __APPLE__ ) || defined( __ANDROID__ )"))
+                if (line.Contains("#if defined( __APPLE__ ) || defined( __ANDROID__ )"))
                 {
                     while (!source.EndOfStream)
                     {
                         line = source.ReadLine();
+                        if (line.Contains("CreateFontToHandle"))
+                        {
 
-                        if (line.StartsWith("#endif // defined( __APPLE__ ) || defined( __ANDROID__ )"))
+                        }
+
+                        Console.WriteLine(line);
+                        if (line.Contains("#endif // defined( __APPLE__ ) || defined( __ANDROID__ )"))
                         {
                             break;
                         }
@@ -611,14 +642,17 @@ namespace Tatelier.DxLib.Optimize
 
                 if (commentIndex != -1)
                 {
-                    while (!source.EndOfStream)
-                    {
-                        if (source.Read() == '*'
-                            && source.Read() == '/')
-                        {
-                            break;
-                        }
-                    }
+                    int endCommentIndex = line.Substring(commentIndex + 2).IndexOf("*/");
+
+					if (endCommentIndex != -1)
+					{
+                        line = line.Substring(0, commentIndex) + line.Substring(endCommentIndex + 2);
+					}
+                    else
+					{
+                        line = line.Substring(0, commentIndex);
+                        isNowComment = true;
+					}
                 }
 
                 // 外部公開されていない関数は処理しない
@@ -637,7 +671,7 @@ namespace Tatelier.DxLib.Optimize
 
                 if (array.Any(v => v == "va_list"))
                 {
-                    Console.WriteLine($"va_list is ignore target. [{array[2]}]");
+                    Console.WriteLine($"va_list is ignore target. [{line}]");
                     continue;
                 }
 
@@ -646,12 +680,28 @@ namespace Tatelier.DxLib.Optimize
                 
                 }
 
-                if(array[0] == "extern"
+                if((array[0] == "extern"
                     && array[3] == "(")
+                    || (array[0] == "extern"
+                    && array[1] == "unsigned"
+                    && array[4] == "(")
+                    || (array[0] == "extern"
+                    && array[1] == "const"
+                    && array[5] == "("))
                 {
-                    const int IndexName = 2;
-                    const int IndexArgsFirst = 4;
+                    int IndexName = 2;
+                    int IndexArgsFirst = 4;
 
+                    if (array[4] == "(")
+                    {
+                        IndexName++;
+                        IndexArgsFirst++;
+                    }
+                    else if (array[5] == "(")
+                    {
+                        IndexName+=2;
+                        IndexArgsFirst+=2;
+                    }
 
                     if (excludeFunctionList.Any(v => v == array[IndexName]))
                     {
@@ -785,7 +835,7 @@ namespace Tatelier.DxLib.Optimize
                                     {
                                         if (type.EndsWith("**"))
                                         {
-                                            Console.WriteLine($"ignore double pointer: {array[2]}");
+                                            Console.WriteLine($"ignore double pointer: {array[IndexName]}");
                                             continue;
                                         }
 
@@ -820,7 +870,8 @@ namespace Tatelier.DxLib.Optimize
                                             {
                                                 var split = type.Split(' ');
 
-                                                type = $"[In, Out] {string.Join(" ", split.Skip(1))}";
+                                                type = $"[In, Out] {string.Join(" ", split.Skip(1))}[]";
+                                                dv = null;
                                             }
 
                                             if ((type?.StartsWith("out") ?? false)
@@ -847,15 +898,29 @@ namespace Tatelier.DxLib.Optimize
                                 }
                                 if (!ignore)
                                 {
-                                    if (TryGetTypeForCS(array[1], out var t, out _))
+                                    string tt = "";
+                                    for(int k = 1; k < IndexArgsFirst - 2; k++)
+									{
+										if (array[k] == "*")
+										{
+                                            tt = tt.Remove(tt.Length - 1);
+                                        }
+                                        tt += array[k] + " ";
+									}
+									if (tt.Length > 0)
+									{
+                                        tt = tt.Remove(tt.Length - 1);
+									}
+
+                                    if (TryGetTypeForCS(tt, out var t, out _))
                                     {
                                         f.ReturnType = t;
                                     }
                                     else
                                     {
-                                        f.ReturnType = array[1];
+                                        f.ReturnType = tt;
                                     }
-                                    f.Name = array[2];
+                                    f.Name = array[IndexName];
 
                                     a.WriteLine($"[DllImport({dllNameVariableValue}, EntryPoint=\"dx_{f.Name}\", CallingConvention=CallingConvention.StdCall)]");
                                     a.WriteLine($"{f.GetString($"extern {(f.IsUnsafe ? "unsafe " : "")}static ", "dx_", true)};");
@@ -889,6 +954,7 @@ namespace Tatelier.DxLib.Optimize
 
             var sr = new StreamReader(dxlibHeaderFilePath);
 
+            var srFuncWin = new StreamReader(dxlibFuncWinHeaderFilePath);
 
             // 関数
             using (var a = new CSSourceStream(outputExtensionsFilePath))
@@ -970,6 +1036,19 @@ namespace Tatelier.DxLib.Optimize
                     if (line.Contains("DX_FUNCTION_START"))
                     {
                         WriteFunction(sr, a);
+                    }
+                }
+
+
+                srFuncWin.BaseStream.Seek(0, SeekOrigin.Begin);
+
+
+                while (!srFuncWin.EndOfStream)
+                {
+                    var line = srFuncWin.ReadLine();
+                    if (line.Contains("DX_FUNCTION_START"))
+                    {
+                        WriteFunction(srFuncWin, a);
                     }
                 }
             }
