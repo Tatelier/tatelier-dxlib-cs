@@ -6,14 +6,15 @@ using System.Text;
 namespace Tatelier.DxLib.Optimize
 {
     [DebuggerDisplay("{inputText}")]
-    class TextAnalyzer
+    public class TextAnalyzer
     {
-        public char[] splitCharList = new char[]
+
+        public char[] splitIgnoreCharList = new char[]
         {
-            '\t',
             ' ',
             '\r',
             '\n',
+            '\t',
         };
 
         public char[] splitCharList2 = new char[]
@@ -26,9 +27,11 @@ namespace Tatelier.DxLib.Optimize
             '(',
             ')',
             ',',
+            '#',
         };
 
         public StringBuilder inputText;
+
         public int index;
 
         public string[] ToArrayStr()
@@ -59,14 +62,30 @@ namespace Tatelier.DxLib.Optimize
 
         public string GetStr()
         {
-            var outputText = new StringBuilder(64);
-
-            bool isNowComment = false;
+            var outputText = new StringBuilder(32);
 
             for (int i = index; i < inputText.Length; i++)
             {
+                // 文字
+                if(inputText[i] == '\'')
+                {
+                    if(i + 2 < inputText.Length
+                        && inputText[i+2] == '\'')
+                    {
+                        outputText.Append(inputText[i]);
+                        outputText.Append(inputText[i + 1]);
+                        outputText.Append(inputText[i + 2]);
+                        index += 2;
+                        return $"{outputText}";
+                    }
+                    else
+                    {
+                        throw new System.Exception("文字がシングルコーテーションで囲まれていません。");
+                    }
+                }
                 // 文字列
-                if (inputText[i] == '\"')
+                // "と"で囲まれたテキストは文字列とする。
+                else if (inputText[i] == '\"')
                 {
                     outputText.Append(inputText[i]);
 
@@ -81,6 +100,7 @@ namespace Tatelier.DxLib.Optimize
                     }
                 }
                 // コメント
+                // //以降の文字列はその行に限り無視する
                 else if ('/' == inputText[i]
                     && (i + 1) < inputText.Length
                     && '/' == inputText[i + 1])
@@ -94,6 +114,8 @@ namespace Tatelier.DxLib.Optimize
                         }
                     }
                 }
+                // コメント
+                // /*以降の文字列は*/が現れるまで行をまたいで無視する。
                 else if('/' == inputText[i]
                     && (i + 1) < inputText.Length
                     && '*' == inputText[i + 1])
@@ -115,7 +137,8 @@ namespace Tatelier.DxLib.Optimize
                         }
                     }
                 }
-                else if (splitCharList.Any(v => v == inputText[i]))
+                // 無視リストの文字の場合、そこで
+                else if (splitIgnoreCharList.Any(v => v == inputText[i]))
                 {
                     if (outputText.Length > 0)
                     {
@@ -123,6 +146,8 @@ namespace Tatelier.DxLib.Optimize
                         return $"{outputText}";
                     }
                 }
+                // 分割文字リストの文字の場合、そこまで積み上げた文字列を返し、
+                // その次に分岐文字を返す
                 else if (splitCharList2.Any(v => v == inputText[i]))
                 {
                     if (outputText.Length > 0)
@@ -145,6 +170,12 @@ namespace Tatelier.DxLib.Optimize
             index = inputText.Length;
 
             return null;
+        }
+
+        public void SetText(string text)
+        {
+            inputText = new StringBuilder(text);
+            index = 0;
         }
     }
 }

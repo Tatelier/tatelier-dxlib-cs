@@ -24,6 +24,13 @@ namespace Tatelier.DxLib.Optimize
             WriteLine($"public const int {name} = {value};");
         }
 
+        public void WriteLineConst(string name, object value)
+        {
+            string v = $"{value}";
+
+            TextAnalyzer textAnalyzer = new TextAnalyzer();
+        }
+
         public CSSourceStream(string filePath)
         {
 

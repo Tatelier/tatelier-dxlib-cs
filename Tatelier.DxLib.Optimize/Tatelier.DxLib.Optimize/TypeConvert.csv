@@ -1,0 +1,33 @@
+C++,C#Type,C#TypeInStruct,C#TypeFunctionReturn,out,unsafe,modifier,size
+,,,,,,,
+int,int,,,,,,4
+short,short,,,,,,
+char,sbyte,,,,,,
+double,double,,,,,,
+float,float,,,,,,
+,,,,,,,
+unsigned int,uint,,,,,,4
+unsigned char,byte,,,,,,1
+unsigned short,ushort,,,,,,
+BOOL,bool,,,,,,
+LONGLONG,long,,,,,,8
+ULONGLONG,ulong,,,,,,8
+WORD,ushort,,,,,,2
+DWORD,uint,,,,,,4
+,,,,,,,
+int*,int,,,out,,,0
+float*,float ,,,out,,,0
+double*,double,,,out,,,
+,,,,,,,
+const TCHAR*,string,uint,System.IntPtr,,,,0
+const char*,string,uint,System.IntPtr,,,,
+const void*,System.IntPtr,,,,,,
+const IMEINPUTCLAUSEDATA*,uint,uint,,,,,
+const COLORDATA*,uint,uint,,,,,
+const MATRIX*,,,,,,,
+const?MATRIX_D*,,,,,,,
+,,,,,,,
+char*,System.Text.StringBuilder,,,,,,
+TCHAR*,System.Text.StringBuilder,,,,,,
+,,,,,,,
+size_t,ulong,,,,,,

@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.810.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tatelier.DxLib.Optimize", "Tatelier.DxLib.Optimize\Tatelier.DxLib.Optimize.csproj", "{113F3040-1889-44BD-ACF5-066D02CD17B7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestTextAnalyzer", "TestTextAnalyzer\TestTextAnalyzer.csproj", "{EF82AA5D-307C-45E5-8D04-85B6829F2E2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|anycpu = Debug|anycpu
@@ -15,6 +17,10 @@ Global
 		{113F3040-1889-44BD-ACF5-066D02CD17B7}.Debug|anycpu.Build.0 = Debug|Any CPU
 		{113F3040-1889-44BD-ACF5-066D02CD17B7}.Release|anycpu.ActiveCfg = Release|anycpu
 		{113F3040-1889-44BD-ACF5-066D02CD17B7}.Release|anycpu.Build.0 = Release|anycpu
+		{EF82AA5D-307C-45E5-8D04-85B6829F2E2E}.Debug|anycpu.ActiveCfg = Debug|Any CPU
+		{EF82AA5D-307C-45E5-8D04-85B6829F2E2E}.Debug|anycpu.Build.0 = Debug|Any CPU
+		{EF82AA5D-307C-45E5-8D04-85B6829F2E2E}.Release|anycpu.ActiveCfg = Release|Any CPU
+		{EF82AA5D-307C-45E5-8D04-85B6829F2E2E}.Release|anycpu.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

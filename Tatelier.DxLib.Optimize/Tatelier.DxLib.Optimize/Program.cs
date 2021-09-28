@@ -37,28 +37,80 @@ namespace Tatelier.DxLib.Optimize
             ("ULONGLONG", "ulong", 8),
             ("WORD", "ushort", 2),
             ("DWORD", "uint", 4),
+            ("BOOL", "int", 4),
 
             ("void*", "uint", 4),
             ("int*", "out int", 4),
             ("float*", "out float", 4),
+            ("double*", "out double", 4),
             ("TOUCHINPUTDATA*", "out TOUCHINPUTDATA", 4),
             ("TOUCHINPUTPOINT*", "out TOUCHINPUTPOINT", 4),
             ("IPDATA*", "out IPDATA", 4),
             ("IPDATA_IPv6*", "out IPDATA_IPv6", 4),
             ("DINPUT_JOYSTATE*", "out DINPUT_JOYSTATE", 4),
             ("XINPUT_STATE*", "out XINPUT_STATE", 4),
+            ("LONGLONG*", "out long", 8),
+            ("ULONGLONG*", "out ulong", 8),
 
             ("DWORD_PTR", "uint", 4),
 
             ("TCHAR*", "System.Text.StringBuilder", 8),
+            ("MATRIX_D*", "out MATRIX_D", 0),
+            ("MATRIX*", "out MATRIX", 0),
+            ("VECTOR_D*", "out VECTOR_D", 0),
+            ("VECTOR*", "out VECTOR", 0),
+            ("CUBEDATA*", "out CUBEDATA", 0),
+            ("COLORDATA*", "out COLORDATA", 0),
+            ("IMAGEFORMATDESC*", "out IMAGEFORMATDESC", 0),
+
             ("const void*", "System.IntPtr", 8),
             ("const TCHAR*", "string", -1),
             ("const TCHAR**", "uint", 4),
             ("const char*", "uint", 4),
+            ("const MATRIX_D*", "out MATRIX_D", 0),
+            ("const MATRIX*", "out MATRIX", 0),
             ("const IMEINPUTCLAUSEDATA*", "uint", 4),
+            ("const COLORDATA*", "uint", 4),
             ("MV1_COLL_RESULT_POLY*", "uint", 4),
 
-            ("DX_CHAR*", "[In, Out] byte[]", 8),
+            ("const INT4*", "[In, Out] INT4[]", 4),
+            ("const int*", "[In, Out] int[]", 4),
+            ("const MATRIX*", "out MATRIX", 4),
+            ("const MATRIX_D*", "out MATRIX_D", 8),
+            ("const FLOAT4*", "[In, Out] FLOAT4[]", 4),
+            ("float*", "out float", 8),
+            ("const float*", "[In, Out] float[]", 8),
+            ("const double*", "out double", 8),
+            ("const BOOL*", "[In, Out] int[]", 8),
+            ("const unsigned short*", "out ushort", 8),
+            ("const VECTOR*", "out VECTOR", 8),
+            ("const VECTOR_D*", "out VECTOR_D", 8),
+
+            ("DX_CHAR*", "out byte", 8),
+            ("RECT*", "out RECT", 0),
+            ("VECTOR*", "out VECTOR", 8),
+            ("TRIANGLE_POINT_RESULT_D*", "out TRIANGLE_POINT_RESULT_D", 8),
+            ("TRIANGLE_POINT_RESULT*", "out TRIANGLE_POINT_RESULT", 8),
+            ("SEGMENT_TRIANGLE_RESULT*", "out SEGMENT_TRIANGLE_RESULT", 8),
+            ("SEGMENT_TRIANGLE_RESULT_D*", "out SEGMENT_TRIANGLE_RESULT_D", 8),
+            ("SEGMENT_SEGMENT_RESULT*", "out SEGMENT_SEGMENT_RESULT", 8),
+            ("SEGMENT_SEGMENT_RESULT_D*", "out SEGMENT_SEGMENT_RESULT_D", 8),
+            ("PLANE_POINT_RESULT*", "out PLANE_POINT_RESULT", 8),
+            ("PLANE_POINT_RESULT_D*", "out PLANE_POINT_RESULT_D", 8),
+            ("SEGMENT_POINT_RESULT*", "out SEGMENT_POINT_RESULT", 8),
+            ("SEGMENT_POINT_RESULT_D*", "out SEGMENT_POINT_RESULT_D", 8),
+            ("VERTEX2DSHADER*","out VERTEX2DSHADER", 8),
+            ("VERTEX3DSHADER*","out VERTEX3DSHADER", 8),
+            ("const VERTEX*", "out VERTEX", 0),
+            ("const VERTEX2D*", "out VERTEX2D", 0),
+            ("const VERTEX3D*", "out VERTEX3D", 0),
+            ("const VERTEX_3D*", "out VERTEX_3D", 0),
+            ("const RECT*", "out RECT", 0),
+            ("const POINTDATA*", "out POINTDATA", 0),
+            ("const LINEDATA*", "out LINEDATA", 0),
+            ("const VERTEX2DSHADER*","[In, Out] VERTEX2DSHADER[]", 8),
+            ("const VERTEX3DSHADER*","[In, Out] VERTEX3DSHADER[]", 8),
+            ("const SOUND3D_REVERB_PARAM*", "out SOUND3D_REVERB_PARAM", 0),
 
             ("VECTOR", null, 12),
             ("VECTOR_D", null, 24),
@@ -67,6 +119,10 @@ namespace Tatelier.DxLib.Optimize
             ("FLOAT4", null, 16),
             ("IPDATA", null, 4),
             ("IPDATA_IPv6", null, 16),
+            ("MATRIX", null, 8),
+            ("MATRIX_D", null, 32),
+            ("INT4", null, 16),
+            ("MV1_COLL_RESULT_POLY_DIM", null, 0),
 
             ("DATEDATA*", "out DATEDATA", 8),
 
@@ -118,7 +174,6 @@ namespace Tatelier.DxLib.Optimize
 
             "SetGraphicsDeviceRestoreCallbackFunction", "SetGraphicsDeviceLostCallbackFunction",
             "AddUserGraphLoadFunction4", "SubUserGraphLoadFunction4",
-
         };
 
         static readonly IReadOnlyList<string> excludeVariableTypeList = new string[]
@@ -144,13 +199,13 @@ namespace Tatelier.DxLib.Optimize
         static string GetConvertHexToDec(StringBuilder sb)
 		{
             var textAnalyzer = new TextAnalyzer();
-            textAnalyzer.splitCharList = new char[]
+            textAnalyzer.splitIgnoreCharList = new char[]
             {
             };
             textAnalyzer.splitCharList2 = new char[]
             {
-                '\t',
                 ' ',
+                '\t',
                 '\r',
                 '\n',
                 '*',
@@ -188,7 +243,6 @@ namespace Tatelier.DxLib.Optimize
         {
             a.WriteLineConstInt("TRUE", 1);
             a.WriteLineConstInt("FALSE", 0);
-
 
             StringBuilder name = new StringBuilder(256);
             StringBuilder value = new StringBuilder(256);
@@ -508,23 +562,9 @@ namespace Tatelier.DxLib.Optimize
 
         static void WriteFunction(StreamReader source, CSSourceStream a)
         {
-            var f = new Function()
-            {
-                ReturnType = "int",
-                Name = "DxLib_Init",
-                ParameterList = new List<Parameter>()
-                {
-                    new Parameter()
-                    {
-                        Type = "bool",
-                        Name = "isExit"
-                    }
-                }
-            };
-            
-            f = new Function();
+            var f = new Function();
 
-            var textAnalyzer = new TextAnalyzer();
+            var csv = new CSV("TypeConvert.csv");
 
             while (!source.EndOfStream)
             {
@@ -555,6 +595,7 @@ namespace Tatelier.DxLib.Optimize
                     line = source.ReadLine();
                 }
 
+                // コメント(//)以降を無視
                 int commentIndex = line.IndexOf("//");
 
                 if (commentIndex != -1)
@@ -580,15 +621,18 @@ namespace Tatelier.DxLib.Optimize
                     }
                 }
 
-
+                // 外部公開されていない関数は処理しない
                 if (!line.Contains("extern"))
                 {
                     continue;
                 }
 
-                textAnalyzer.inputText = new StringBuilder(line);
+				var textAnalyzer = new TextAnalyzer
+				{
+					inputText = new StringBuilder(line)
+				};
 
-                var array = textAnalyzer.ToArrayStr();
+				var array = textAnalyzer.ToArrayStr();
 
 
                 if (array.Any(v => v == "va_list"))
@@ -597,155 +641,233 @@ namespace Tatelier.DxLib.Optimize
                     continue;
                 }
 
+                if(array.Any(v => v.Contains("GetDrawStringWidth")))
+                { 
+                
+                }
+
                 if(array[0] == "extern"
                     && array[3] == "(")
                 {
-                    if(excludeFunctionList.Any(v=>v == array[2]))
+                    const int IndexName = 2;
+                    const int IndexArgsFirst = 4;
+
+
+                    if (excludeFunctionList.Any(v => v == array[IndexName]))
                     {
                         continue;
                     }
-                    for(int i = 4; i < array.Length; i++)
+                    int bracketCount = 1;
+                    for (int i = IndexArgsFirst; i < array.Length; i++)
                     {
+                        if(array[i] == "(")
+						{
+                            bracketCount++;
+						}
+
                         if(array[i] == ")")
                         {
-                            for(int j = 4; j < i; j++)
+                            bracketCount--;
+
+                            // カッコが閉じられたらそこまでを仮引数として処理する
+							if (bracketCount == 0)
                             {
-                                string t = array[j];
-                                if(t == ",")
+                                for (int j = IndexArgsFirst; j < i; j++)
                                 {
-                                    j++;
-                                    t = array[j];
-                                }
-                                string n = null; ;
-                                if(t == "const")
-                                {
-                                    if(j + 1 < array.Length)
+                                    string type = array[j];
+
+                                    // "," の場合はその次の文字列を型で取得する。
+                                    if (type == ",")
                                     {
                                         j++;
-                                        t += (" " + array[j]);
+                                        type = array[j];
                                     }
-                                }
 
-                                if (t == "unsigned")
-                                {
-                                    if (j + 1 < array.Length)
-                                    {
-                                        j++;
-                                        t += (" " + array[j]);
-                                    }
-                                }
 
-                                while (j + 1 < array.Length
-                                    && array[j+1] == "*")
-                                {
-                                    j++;
-                                    t += "*";
-                                }
-
-                                string dv = null;
-                                if(j + 1 < array.Length)
-                                {
-                                    j++;
-                                    if(array[j] != ")")
-                                    {
-                                        n = array[j];
-                                        if (j + 1 < array.Length)
-                                        {
-                                            if (array[j + 1] == "=")
-                                            {
-                                                j += 2;
-                                                if (array[j] == "NULL")
-                                                {
-                                                    dv = "0";
-                                                }
-                                                else
-                                                {
-                                                    dv = $"{array[j]}";
-                                                }
-                                                while (array[j + 1] != ","
-                                                    && array[j + 1] != ")")
-                                                {
-                                                    if (array[j + 1] == "NULL")
-                                                    {
-                                                        dv += " 0";
-                                                    }
-                                                    else
-                                                    {
-                                                        dv += $" {array[j + 1]}";
-                                                    }
-                                                    dv += $" {array[j+1]}";
-                                                    j++;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    else
+                                    if (type == "const")
                                     {
                                         if (j + 1 < array.Length)
                                         {
                                             j++;
-                                            if (array[j] != ")"
-                                                && array[j] != ";")
+                                            type += " " + array[j];
+                                        }
+                                    }
+
+                                    if (type.EndsWith("unsigned"))
+                                    {
+                                        if (j + 1 < array.Length)
+                                        {
+                                            j++;
+                                            type += (" " + array[j]);
+                                        }
+                                    }
+
+
+                                    while (j + 1 < array.Length
+                                        && array[j + 1] == "*")
+                                    {
+                                        j++;
+                                        type += "*";
+                                    }
+
+                                    string name = null;
+
+                                    string dv = null;
+
+                                    if (j + 1 < array.Length)
+                                    {
+                                        j++;
+                                        if (array[j] != ")")
+                                        {
+                                            name = array[j];
+                                            if (j + 1 < array.Length)
                                             {
-                                                n = array[j];
+                                                if (array[j + 1] == "=")
+                                                {
+                                                    j += 2;
+
+                                                    // C# に NULLはないため、0に変換する
+                                                    if (array[j] == "NULL")
+                                                    {
+                                                        dv = "0";
+                                                    }
+                                                    else if (array[j] == "-")
+                                                    {
+                                                        dv = $"{array[j]}";
+                                                        j++;
+                                                        dv += $"{array[j]}";
+                                                    }
+                                                    else
+                                                    {
+                                                        dv = $"{array[j]}";
+                                                    }
+
+                                                    while (array[j + 1] != ","
+                                                        && array[j + 1] != ")")
+                                                    {
+                                                        if (array[j + 1] == "NULL")
+                                                        {
+                                                            dv += " 0";
+                                                        }
+                                                        else if (array[j + 1] == "-")
+                                                        {
+                                                            dv = $" {array[j + 1]}";
+                                                            j++;
+                                                            dv += $"{array[j + 1]}";
+                                                        }
+                                                        else
+                                                        {
+                                                            dv += $" {array[j + 1]}";
+                                                        }
+                                                        dv += $" {array[j + 1]}";
+                                                        j++;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (j + 1 < array.Length)
+                                            {
+                                                j++;
+                                                if (array[j] != ")"
+                                                    && array[j] != ";")
+                                                {
+                                                    name = array[j];
+                                                }
                                             }
                                         }
                                     }
-                                }
 
 
-                                if(t?.Length > 0
-                                    && n?.Length > 0)
-                                {
-                                    if (t.EndsWith("**"))
+                                    if (type?.Length > 0
+                                        && name?.Length > 0)
                                     {
-                                        continue;
-                                    }
-
-                                    var temp = t;
-
-                                    ignore = excludeVariableTypeList.Any(v => t.Contains(v));
-
-                                    if (!ignore)
-                                    {
-                                        if (!TryGetTypeForCS(t, out t, out var s))
+                                        if (type.EndsWith("**"))
                                         {
-                                            try
-                                            {
-                                                throw new Exception(temp);
-                                            }
-                                            catch
-                                            {
-
-                                            }
+                                            Console.WriteLine($"ignore double pointer: {array[2]}");
+                                            continue;
                                         }
-                                        f.ParameterList.Add(new Parameter()
+
+                                        var temp = type;
+
+                                        ignore = excludeVariableTypeList.Any(v => type.Contains(v));
+
+                                        if (!ignore)
                                         {
-                                            Type = t,
-                                            Name = n,
-                                            defaultValue = dv,
-                                        });
+                                            if (!TryGetTypeForCS(type, out type, out var s))
+                                            {
+                                                try
+                                                {
+                                                    throw new Exception(temp);
+                                                }
+                                                catch
+                                                {
+
+                                                }
+                                            }
+
+                                            if ((type == "System.IntPtr"
+                                                || (type?.Contains("VECTOR") ?? false))
+                                                && dv?.Length > 0)
+                                            {
+                                                dv = "default";
+                                            }
+
+                                            if (type != null
+                                                && type.StartsWith("out")
+                                                && name.EndsWith("Array"))
+                                            {
+                                                var split = type.Split(' ');
+
+                                                type = $"[In, Out] {string.Join(" ", split.Skip(1))}";
+                                            }
+
+                                            if ((type?.StartsWith("out") ?? false)
+                                                || (type?.StartsWith("ref") ?? false)
+                                                || (type?.StartsWith("string") ?? false))
+                                            {
+                                                dv = null;
+                                            }
+
+
+
+                                            f.ParameterList.Add(new Parameter()
+                                            {
+                                                Type = type,
+                                                Name = name,
+                                                defaultValue = dv,
+                                            });
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
                                     }
                                 }
-                            }
-                            if (!ignore)
-                            {
-                                if(TryGetTypeForCS(array[1], out var t, out _))
+                                if (!ignore)
                                 {
-                                    f.ReturnType = t;
-                                }
-                                else
-                                {
-                                    f.ReturnType = array[1];
-                                }
-                                f.Name = array[2];
+                                    if (TryGetTypeForCS(array[1], out var t, out _))
+                                    {
+                                        f.ReturnType = t;
+                                    }
+                                    else
+                                    {
+                                        f.ReturnType = array[1];
+                                    }
+                                    f.Name = array[2];
 
-                                a.WriteLine($"[DllImport({dllNameVariableValue}, EntryPoint=\"dx_{f.Name}\", CallingConvention=CallingConvention.StdCall)]");
-                                a.WriteLine($"{f.GetString($"extern {(f.IsUnsafe ? "unsafe " : "")}static ", "dx_", true)};");
-                                a.WriteLine($"{f.GetString($"public {(f.IsUnsafe ? "unsafe " : "")}static ")} => dx_{f.Name}({f.GetParameterString(true, true)});");
-                                a.WriteLine("");
+                                    a.WriteLine($"[DllImport({dllNameVariableValue}, EntryPoint=\"dx_{f.Name}\", CallingConvention=CallingConvention.StdCall)]");
+                                    a.WriteLine($"{f.GetString($"extern {(f.IsUnsafe ? "unsafe " : "")}static ", "dx_", true)};");
+                                    a.WriteLine($"{f.GetString($"public {(f.IsUnsafe ? "unsafe " : "")}static ")} => dx_{f.Name}({f.GetParameterString(true, true)});");
+                                    a.WriteLine("");
+                                }
+                                f.Clear();
+                                if (ignore)
+                                {
+                                    break;
+                                }
                             }
-                            f.Clear();
                             break;
                         }
                     }

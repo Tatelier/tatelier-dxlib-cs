@@ -37,13 +37,90 @@ namespace Tatelier.DxLib.Optimize
         /// </summary>
         public List<Parameter> ParameterList { get; } = new List<Parameter>();
 
+        bool IsDefaultValueOK(int index)
+        {
+            if(index == ParameterList.Count - 1)
+            {
+                return true;
+            }
+
+            for(int i = ParameterList.Count - 1; i > index; i--)
+            {
+                if (ParameterList[i].defaultValue == null
+                    || ParameterList[i].defaultValue.Length == 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 仮引数の文字列を取得する。
+        /// </summary>
+        /// <param name="ignoreType"></param>
+        /// <param name="ignoreDefaultValue"></param>
+        /// <returns></returns>
         public string GetParameterString(bool ignoreType = false, bool ignoreDefaultValue = false)
         {
             string result = "";
 
-            foreach(var item in ParameterList)
+            for(int i=0;i<ParameterList.Count;i++)
             {
-                result += $"{(ignoreType ? "" : $"{item.Type} ")}{item.Name}{(ignoreDefaultValue ? "" : (item.defaultValue != null ? $" = {item.defaultValue}" : ""))}, ";
+                var item = ParameterList[i];
+
+                var typeSplit = item.Type?.Split(' ') ?? Array.Empty<string>();
+
+                string t = "";
+
+                if (ignoreDefaultValue)
+                {
+                    if (typeSplit.Length > 1
+                        && (typeSplit[0] == "out"
+                        || typeSplit[0] == "ref"))
+                    {
+                        string temp = "";
+
+                        temp += typeSplit[0];
+
+                        t = $"{(ignoreType ? $"{temp} " : $"{item.Type} ")}";
+                    }
+                    else
+                    {
+                        t = $"{(ignoreType ? "" : $"{item.Type} ")}";
+                    }
+                }
+                else
+                {
+                    t = $"{(ignoreType ? "" : $"{item.Type} ")}";
+                }
+
+                string defaultValue;
+
+                if ((item.Type?.StartsWith("out") ?? false)
+                    || (item.Type?.StartsWith("ref") ?? false))
+                {
+                    defaultValue = "";
+                }
+                else
+                {
+                    if(item.defaultValue == "-1")
+                    {
+
+                    }
+
+                    if (IsDefaultValueOK(i))
+                    {
+                        defaultValue = (ignoreDefaultValue ? "" : (item.defaultValue != null ? $" = {item.defaultValue}" : ""));
+                    }
+                    else
+                    {
+                        defaultValue = "";
+                    }
+                }
+
+                result += $"{t}{item.Name}{defaultValue}, ";
             }
 
             if (result.Length > 0)
