@@ -133,6 +133,8 @@ namespace Tatelier.DxLib.Optimize
                                 && '/' == inputText[i + 1])
                             {
                                 index = i + 2;
+                                i = index;
+                                break;
                             }
                         }
                     }

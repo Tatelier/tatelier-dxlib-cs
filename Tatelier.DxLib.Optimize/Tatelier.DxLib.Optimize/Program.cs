@@ -39,8 +39,15 @@ namespace Tatelier.DxLib.Optimize
             ("WORD", "ushort", 2),
             ("DWORD", "uint", 4),
             ("BOOL", "int", 4),
+            ("VERTEX", null, 12),
+            ("VECTOR", null, 12),
+            ("VECTOR_D", null, 24),
+            ("COLOR_U8", null, 4),
+            ("COLOR_F", null, 16),
+            ("FLOAT4", null, 16),
+            ("INT4", null, 16),
 
-            ("void*", "uint", 4),
+            ("void*", "System.IntPtr", 4),
             ("int*", "out int", 4),
             ("float*", "out float", 4),
             ("double*", "out double", 4),
@@ -56,87 +63,44 @@ namespace Tatelier.DxLib.Optimize
             ("DWORD_PTR", "uint", 4),
 
             ("TCHAR*", "System.Text.StringBuilder", 8),
-            ("MATRIX_D*", "out MATRIX_D", 0),
-            ("MATRIX*", "out MATRIX", 0),
-            ("VECTOR_D*", "out VECTOR_D", 0),
-            ("VECTOR*", "out VECTOR", 0),
-            ("CUBEDATA*", "out CUBEDATA", 0),
-            ("COLORDATA*", "out COLORDATA", 0),
-            ("IMAGEFORMATDESC*", "out IMAGEFORMATDESC", 0),
-            ("SOUND3D_REVERB_PARAM*", "out SOUND3D_REVERB_PARAM", 0),
             ("BYTE*", "out byte", 0),
 
             ("const void*", "System.IntPtr", 8),
             ("const TCHAR*", "string", 4),
             ("const TCHAR**", "uint", 4),
             ("const char*", "uint", 4),
-            ("const MATRIX_D*", "out MATRIX_D", 0),
-            ("const MATRIX*", "out MATRIX", 0),
             ("const IMEINPUTCLAUSEDATA*", "uint", 4),
             ("const COLORDATA*", "uint", 4),
             ("const IMAGEFORMATDESC*", "out IMAGEFORMATDESC", 0),
             ("MV1_COLL_RESULT_POLY*", "uint", 4),
 
-            ("const INT4*", "[In, Out] INT4[]", 4),
-            ("const int*", "[In, Out] int[]", 4),
-            ("const MATRIX*", "out MATRIX", 4),
-            ("const MATRIX_D*", "out MATRIX_D", 8),
-            ("const FLOAT4*", "[In, Out] FLOAT4[]", 4),
-            ("const float*", "[In, Out] float[]", 8),
-            ("const double*", "out double", 8),
-            ("const BOOL*", "[In, Out] int[]", 8),
+            ("const BOOL*", "out int", 4),
             ("const unsigned short*", "out ushort", 8),
-            ("const VECTOR*", "out VECTOR", 8),
-            ("const VECTOR_D*", "out VECTOR_D", 8),
 
             ("DX_CHAR*", "out byte", 8),
-            ("RECT*", "out RECT", 0),
-            ("VECTOR*", "out VECTOR", 8),
-            ("TRIANGLE_POINT_RESULT_D*", "out TRIANGLE_POINT_RESULT_D", 8),
-            ("TRIANGLE_POINT_RESULT*", "out TRIANGLE_POINT_RESULT", 8),
-            ("SEGMENT_TRIANGLE_RESULT*", "out SEGMENT_TRIANGLE_RESULT", 8),
-            ("SEGMENT_TRIANGLE_RESULT_D*", "out SEGMENT_TRIANGLE_RESULT_D", 8),
-            ("SEGMENT_SEGMENT_RESULT*", "out SEGMENT_SEGMENT_RESULT", 8),
-            ("SEGMENT_SEGMENT_RESULT_D*", "out SEGMENT_SEGMENT_RESULT_D", 8),
-            ("PLANE_POINT_RESULT*", "out PLANE_POINT_RESULT", 8),
-            ("PLANE_POINT_RESULT_D*", "out PLANE_POINT_RESULT_D", 8),
-            ("SEGMENT_POINT_RESULT*", "out SEGMENT_POINT_RESULT", 8),
-            ("SEGMENT_POINT_RESULT_D*", "out SEGMENT_POINT_RESULT_D", 8),
-            ("VERTEX2DSHADER*","out VERTEX2DSHADER", 8),
-            ("VERTEX3DSHADER*","out VERTEX3DSHADER", 8),
-            ("const VERTEX*", "out VERTEX", 0),
-            ("const VERTEX2D*", "out VERTEX2D", 0),
-            ("const VERTEX3D*", "out VERTEX3D", 0),
-            ("const VERTEX_3D*", "out VERTEX_3D", 0),
-            ("const RECT*", "out RECT", 0),
-            ("const POINTDATA*", "out POINTDATA", 0),
-            ("const LINEDATA*", "out LINEDATA", 0),
-            ("const VERTEX2DSHADER*","[In, Out] VERTEX2DSHADER[]", 8),
-            ("const VERTEX3DSHADER*","[In, Out] VERTEX3DSHADER[]", 8),
-            ("const SOUND3D_REVERB_PARAM*", "out SOUND3D_REVERB_PARAM", 0),
 
+            ("HANDLE", "System.IntPtr", 8),
             ("HWND", "System.IntPtr", 8),
             ("HRGN", "System.IntPtr", 8), // 不明
             ("HICON", "System.IntPtr", 8),
-
-            ("VECTOR", null, 12),
-            ("RECT", null, 16),
-            ("VECTOR_D", null, 24),
-            ("COLOR_U8", null, 4),
-            ("COLOR_F", null, 16),
-            ("FLOAT4", null, 16),
-            ("IPDATA", null, 4),
-            ("IPDATA_IPv6", null, 16),
-            ("MATRIX", null, 8),
-            ("MATRIX_D", null, 32),
-            ("INT4", null, 16),
-            ("MV1_COLL_RESULT_POLY_DIM", null, 0),
-            ("MATERIALPARAM", null, 0),
+            ("HINSTANCE", "System.IntPtr", 8),
 
             ("DATEDATA*", "out DATEDATA", 8),
 
             ("COLORDATA", null, 1064),
 
+        };
+
+        static readonly IReadOnlyList<string> csKeywordList = new string[]
+        {
+            "sbyte",
+            "short",
+            "int",
+            "long",
+            "byte",
+            "ushort",
+            "uint",
+            "ulong",
         };
 
         // 定数関連
@@ -196,6 +160,8 @@ namespace Tatelier.DxLib.Optimize
             "BITMAPINFO",
             "WAVEFORMATEX",
             "STREAMDATA",
+            "void**",
+            "IMEINPUTDATA",
         };
 
         static bool CheckExcludeConst(StringBuilder sb)
@@ -355,7 +321,7 @@ namespace Tatelier.DxLib.Optimize
 
             return false;
         }
-        static bool TryGetTypeForCS(string inputType, out string type, out int size)
+        static bool TryGetTypeForCS(string inputType, bool isReturnType, out string type, out int size)
         {
             var item = cppToCSMap.FirstOrDefault(v => v.Item1 == inputType);
 
@@ -465,7 +431,7 @@ namespace Tatelier.DxLib.Optimize
 
                         while (tmp == ",")
                         {
-                            if (!TryGetTypeForCS($"{type}", out typeCS, out size))
+                            if (!TryGetTypeForCS($"{type}", false, out typeCS, out size))
                             {
                                 throw new Exception("型変換に失敗しました。");
                             }
@@ -484,7 +450,7 @@ namespace Tatelier.DxLib.Optimize
                             tmp = ta.GetStr();
                         }
 
-                        if (!TryGetTypeForCS($"{type}", out typeCS, out size))
+                        if (!TryGetTypeForCS($"{type}", false, out typeCS, out size))
                         {
                             throw new Exception("型変換に失敗しました。");
                         }
@@ -568,6 +534,59 @@ namespace Tatelier.DxLib.Optimize
             }
         }
 
+        static string GetTypeString(string[] typeStringArray, int startIndex, int endIndex)
+        {
+            string tt = "";
+            for (int k = startIndex; k <= endIndex; k++)
+            {
+                if (typeStringArray[k] == "*")
+                {
+                    tt = tt.Remove(tt.Length - 1);
+                }
+                tt += typeStringArray[k] + " ";
+            }
+            if (tt.Length > 0)
+            {
+                tt = tt.Remove(tt.Length - 1);
+            }
+
+            return tt;
+        }
+
+        static bool TryGetVariable(string[] array, int startIndex, int endIndex, out string variableType, out string variableName, out string variableDefaultValue)
+        {
+            if(startIndex >= endIndex)
+            {
+                variableType = null;
+                variableName = null;
+                variableDefaultValue = null;
+                return false;
+            }
+
+            int substitutionIndex = Array.IndexOf(array, "=", startIndex, endIndex - startIndex);
+
+            if (substitutionIndex == -1)
+            {
+                variableType = GetTypeString(array, startIndex, endIndex - 1);
+                variableName = array[endIndex];
+                variableDefaultValue = null;
+
+                return true;
+            }
+            else
+            {
+                variableType = GetTypeString(array, startIndex, substitutionIndex - 2);
+                variableName = array[substitutionIndex - 1];
+
+                variableDefaultValue = "";
+                for(int i= substitutionIndex + 1; i <= endIndex; i++)
+                {
+                    variableDefaultValue += array[i];
+                }
+
+                return true;
+            }
+        }
 
         static void WriteFunction(StreamReader source, CSSourceStream a)
         {
@@ -580,14 +599,12 @@ namespace Tatelier.DxLib.Optimize
                 bool ignore = false;
                 var line = source.ReadLine();
 
-                if(line.Contains("GetFontName"))
-				{
-
-				}
                 if (line.Contains("DX_FUNCTION_END"))
                 {
                     break;
                 }
+
+                // (/*)コメント内の場合、(*/)を見つけるまでカット
                 if (isNowComment)
                 {
                     int endCommendIndex = line.IndexOf("*/");
@@ -598,24 +615,24 @@ namespace Tatelier.DxLib.Optimize
                     }
                     else
                     {
+                        Console.WriteLine($"now comment. [{line}]");
                         continue;
                     }
                 }
+
+                // 空行は何もしない
                 if(line.Length == 0)
                 {
+                    Console.WriteLine($"empty line. [{line}]");
                     continue;
                 }
 
-                // 無視
+                // Win版以外は無視
                 if (line.Contains("#if defined( __APPLE__ ) || defined( __ANDROID__ )"))
                 {
                     while (!source.EndOfStream)
                     {
                         line = source.ReadLine();
-                        if (line.Contains("CreateFontToHandle"))
-                        {
-
-                        }
 
                         Console.WriteLine(line);
                         if (line.Contains("#endif // defined( __APPLE__ ) || defined( __ANDROID__ )"))
@@ -633,11 +650,19 @@ namespace Tatelier.DxLib.Optimize
                 {
                     if (commentIndex == 0)
                     {
+                        Console.WriteLine($"now comment. [{line}]");
                         continue;
                     }
                     line = line.Substring(0, commentIndex);
                 }
 
+                if (line.Contains("EnumFontNameEx"))
+                {
+
+                }
+
+
+                // コメント(/*)は、(*/)が現れるまでその分を無視
                 commentIndex = line.IndexOf("/*");
 
                 if (commentIndex != -1)
@@ -646,6 +671,7 @@ namespace Tatelier.DxLib.Optimize
 
 					if (endCommentIndex != -1)
 					{
+                        endCommentIndex += commentIndex + 2;
                         line = line.Substring(0, commentIndex) + line.Substring(endCommentIndex + 2);
 					}
                     else
@@ -658,16 +684,16 @@ namespace Tatelier.DxLib.Optimize
                 // 外部公開されていない関数は処理しない
                 if (!line.Contains("extern"))
                 {
+                    Console.WriteLine($"not extern. [{line}]");
                     continue;
                 }
 
-				var textAnalyzer = new TextAnalyzer
-				{
-					inputText = new StringBuilder(line)
-				};
+                var textAnalyzer = new TextAnalyzer();
+                textAnalyzer.SetText(line);
 
-				var array = textAnalyzer.ToArrayStr();
+                var array = textAnalyzer.ToArrayStr();
 
+                f.Clear();
 
                 if (array.Any(v => v == "va_list"))
                 {
@@ -675,11 +701,132 @@ namespace Tatelier.DxLib.Optimize
                     continue;
                 }
 
-                if(array.Any(v => v.Contains("GetDrawStringWidth")))
-                { 
-                
+                if(array[0] == "extern")
+                {
+                    int argOpenParenthesisIndex = Array.IndexOf(array, "(");
+                    
+                    // 
+                    if (argOpenParenthesisIndex == -1)
+                    {
+                        Console.WriteLine($"not found open parenthesis [{line}]");
+                        continue;
+                    }
+
+                    //　
+                    if (excludeFunctionList.Any(v => v == array[argOpenParenthesisIndex - 1]))
+                    {
+                        continue;
+                    }
+
+                    f.Name = array[argOpenParenthesisIndex - 1];
+
+                    string tt = GetTypeString(array, 1, argOpenParenthesisIndex - 2);
+
+
+                    if (excludeVariableTypeList.Any(v => tt.Contains(v)))
+                    {
+                        Console.WriteLine($"return type exclude. [{line}]");
+                        goto IgnoreLine;
+                    }
+
+                    f.ReturnType = TryGetTypeForCS(tt, true, out var t, out _) ? t : tt;
+
+                    int argCloseParenthesisIndex = Array.LastIndexOf(array, ")");
+
+                    int argOnceStartIndex = argOpenParenthesisIndex + 1;
+                    int argOnceEndIndex;
+
+                    // 仮引数セット
+                    for (int i = argOpenParenthesisIndex + 1; i <= argCloseParenthesisIndex; i++)
+                    {
+                        if (array[i] == ","
+                            || array[i] == ")")
+                        {
+                            argOnceEndIndex = i - 1;
+
+                            if(argOnceStartIndex == argOnceEndIndex)
+                            {
+                                Console.WriteLine("not variable.");
+                                break;
+                            }
+
+                            if(!TryGetVariable(array, argOnceStartIndex, argOnceEndIndex, out var vType, out var vName, out var vDefaultValue))
+                            {
+                                Console.WriteLine($"variable error. [{line}]");
+                                goto IgnoreLine;
+                            }
+
+                            argOnceStartIndex = i + 1;
+
+                            if(excludeVariableTypeList.Any(v => vType.Contains(v)))
+                            {
+                                Console.WriteLine($"variable exclude. [{line}]");
+                                goto IgnoreLine;
+                            }
+
+                            if(TryGetTypeForCS(vType, false, out var vcsType, out int size))
+                            {
+
+                            }
+                            else
+                            {
+                                if (vType.EndsWith("*"))
+                                {
+                                    vcsType = $"out {vType.Replace("*", "").Replace("const ", "")}";
+                                }
+                                else
+                                {
+                                    vcsType = $"{vType.Replace("const ", "")}";
+                                }
+                            }
+
+                            if (!(csKeywordList.Any(v=>vcsType.Contains(v)))
+                                && vDefaultValue?.Length > 0)
+                            {
+                                vDefaultValue = "default";
+                            }
+
+                            // 配列の先頭ポインタの場合は、型を変更する
+                            if (vcsType.StartsWith("out")
+                                && vName.EndsWith("Array"))
+                            {
+                                var split = vcsType.Split(' ');
+
+                                vcsType = $"[In, Out] {string.Join(" ", split.Skip(1))}[]";
+                                vDefaultValue = null;
+                            }
+
+                            if(vDefaultValue == "NULL")
+                            {
+                                vDefaultValue = "0";
+                            }
+
+                            if (vName?.Length > 0
+                               && vType?.Length > 0)
+                            {
+                                f.ParameterList.Add(new Parameter()
+                                {
+                                    Name = vName,
+                                    Type = vcsType,
+                                    defaultValue = vDefaultValue,
+                                });
+                            }
+                            else
+                            {
+
+                            }
+                        }
+                    }
+
+                    a.WriteLine($"[DllImport({dllNameVariableValue}, EntryPoint=\"dx_{f.Name}\", CallingConvention=CallingConvention.StdCall)]");
+                    a.WriteLine($"{f.GetString($"extern {(f.IsUnsafe ? "unsafe " : "")}static ", "dx_", true)};");
+                    a.WriteLine($"{f.GetString($"public {(f.IsUnsafe ? "unsafe " : "")}static ")} => dx_{f.Name}({f.GetParameterString(true, true)});");
+                    a.WriteLine("");
+
+                IgnoreLine:;
                 }
 
+#if false
                 if((array[0] == "extern"
                     && array[3] == "(")
                     || (array[0] == "extern"
@@ -845,7 +992,7 @@ namespace Tatelier.DxLib.Optimize
 
                                         if (!ignore)
                                         {
-                                            if (!TryGetTypeForCS(type, out type, out var s))
+                                            if (!TryGetTypeForCS(type, true, out type, out var s))
                                             {
                                                 try
                                                 {
@@ -912,7 +1059,7 @@ namespace Tatelier.DxLib.Optimize
                                         tt = tt.Remove(tt.Length - 1);
 									}
 
-                                    if (TryGetTypeForCS(tt, out var t, out _))
+                                    if (TryGetTypeForCS(tt, true, out var t, out _))
                                     {
                                         f.ReturnType = t;
                                     }
@@ -939,6 +1086,7 @@ namespace Tatelier.DxLib.Optimize
 
 
                 }
+#endif
 
             }
         }

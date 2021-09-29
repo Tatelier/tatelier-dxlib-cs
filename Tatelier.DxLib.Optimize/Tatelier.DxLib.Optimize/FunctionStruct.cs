@@ -46,7 +46,8 @@ namespace Tatelier.DxLib.Optimize
 
             for(int i = ParameterList.Count - 1; i > index; i--)
             {
-                if (ParameterList[i].defaultValue == null
+                if (ParameterList[i].Type.StartsWith("out ")
+                    || ParameterList[i].defaultValue == null
                     || ParameterList[i].defaultValue.Length == 0)
                 {
                     return false;
