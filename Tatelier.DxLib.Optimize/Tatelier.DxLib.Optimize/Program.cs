@@ -592,11 +592,9 @@ namespace Tatelier.DxLib.Optimize
         {
             var f = new Function();
 
-            var csv = new CSV("TypeConvert.csv");
             bool isNowComment = false;
             while (!source.EndOfStream)
             {
-                bool ignore = false;
                 var line = source.ReadLine();
 
                 if (line.Contains("DX_FUNCTION_END"))
