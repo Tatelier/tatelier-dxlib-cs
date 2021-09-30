@@ -764,21 +764,10 @@ namespace Tatelier.DxLib.Optimize
                                 goto IgnoreLine;
                             }
 
-                            if(TryGetTypeForCS(vType, false, out var vcsType, out int size))
-                            {
-
-                            }
-                            else
-                            {
-                                if (vType.EndsWith("*"))
-                                {
-                                    vcsType = $"out {vType.Replace("*", "").Replace("const ", "")}";
-                                }
-                                else
-                                {
-                                    vcsType = $"{vType.Replace("const ", "")}";
-                                }
-                            }
+                            if(!TryGetTypeForCS(vType, false, out var vcsType, out int size))
+                            { 
+                                vcsType = vType.EndsWith("*") ? $"out {vType.Replace("*", "").Replace("const ", "")}" : $"{vType.Replace("const ", "")}";
+							}
 
                             if (!(csKeywordList.Any(v=>vcsType.Contains(v)))
                                 && vDefaultValue?.Length > 0)
@@ -818,12 +807,31 @@ namespace Tatelier.DxLib.Optimize
                         }
                     }
 
-                    a.WriteLine($"[DllImport({dllNameVariableValue}, EntryPoint=\"dx_{f.Name}\", CallingConvention=CallingConvention.StdCall)]");
-                    a.WriteLine($"{f.GetString($"extern {(f.IsUnsafe ? "unsafe " : "")}static ", "dx_", true)};");
-                    a.WriteLine($"{f.GetString($"public {(f.IsUnsafe ? "unsafe " : "")}static ")} => dx_{f.Name}({f.GetParameterString(true, true)});");
-                    a.WriteLine("");
-
-                IgnoreLine:;
+                    if(f.ReturnType == "const FLOAT4*")
+					{
+                        // TODO: unsafeな返り値のため、ひとまず無視する
+					}
+                    else if (f.ReturnType == "string")
+					{
+						a.WriteLine($"[DllImport({dllNameVariableValue}, EntryPoint=\"dx_{f.Name}\", CallingConvention=CallingConvention.StdCall)]");
+                        a.WriteLine($"extern {(f.IsUnsafe ? "unsafe " : "")}static System.IntPtr dx_{f.Name}({f.GetParameterString(false, true)});");
+						a.WriteLine($"{f.GetString($"public {(f.IsUnsafe ? "unsafe " : "")}static ")}");
+						a.WriteLine($"{{");
+						a.IndentCount++;
+                        a.WriteLine($"var resultIntPtr = dx_{f.Name}({f.GetParameterString(true, true)});");
+                        a.WriteLine("");
+                        a.WriteLine($"return resultIntPtr != System.IntPtr.Zero ? System.Runtime.InteropServices.Marshal.PtrToStringAnsi(resultIntPtr) : string.Empty;");
+                        a.IndentCount--;
+                        a.WriteLine($"}}");
+                    }
+					else
+					{
+						a.WriteLine($"[DllImport({dllNameVariableValue}, EntryPoint=\"dx_{f.Name}\", CallingConvention=CallingConvention.StdCall)]");
+						a.WriteLine($"{f.GetString($"extern {(f.IsUnsafe ? "unsafe " : "")}static ", "dx_", true)};");
+						a.WriteLine($"{f.GetString($"public {(f.IsUnsafe ? "unsafe " : "")}static ")} => dx_{f.Name}({f.GetParameterString(true, true)});");
+						a.WriteLine("");
+					}
+					IgnoreLine:;
                 }
 
 #if false
