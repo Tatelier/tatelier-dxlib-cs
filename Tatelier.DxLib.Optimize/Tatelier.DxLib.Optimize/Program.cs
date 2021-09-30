@@ -1115,9 +1115,9 @@ namespace Tatelier.DxLib.Optimize
             // 関数
             using (var a = new CSSourceStream(outputExtensionsFilePath))
             {
-                a.WriteLine("#if _WIN32");
+                a.WriteLine("#if WIN32");
                 a.WriteLine($"const string {dllNameVariableValue} = \"DxLib.dll\";");
-                a.WriteLine("#elif _WIN64");
+                a.WriteLine("#elif WIN64");
                 a.WriteLine($"const string {dllNameVariableValue} = \"DxLib_x64.dll\";");
                 a.WriteLine("#else");
                 a.WriteLine($"const string {dllNameVariableValue} = \"DxLib.dll\";");
