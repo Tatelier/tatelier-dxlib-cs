@@ -534,6 +534,13 @@ namespace Tatelier.DxLib.Optimize
             }
         }
 
+        /// <summary>
+        /// 型の文字列を返す
+        /// </summary>
+        /// <param name="typeStringArray">型データの入っている配列</param>
+        /// <param name="startIndex">開始位置</param>
+        /// <param name="endIndex">終了位置</param>
+        /// <returns></returns>
         static string GetTypeString(string[] typeStringArray, int startIndex, int endIndex)
         {
             string tt = "";
