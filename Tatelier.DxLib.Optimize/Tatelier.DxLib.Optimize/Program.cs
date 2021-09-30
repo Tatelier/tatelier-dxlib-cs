@@ -656,11 +656,6 @@ namespace Tatelier.DxLib.Optimize
                     line = line.Substring(0, commentIndex);
                 }
 
-                if (line.Contains("EnumFontNameEx"))
-                {
-
-                }
-
 
                 // コメント(/*)は、(*/)が現れるまでその分を無視
                 commentIndex = line.IndexOf("/*");
